@@ -25,7 +25,7 @@ type ShortenRequest struct {
 func shorten(c *gin.Context) {
 	var shortenRequest ShortenRequest
 
-	if c.ShouldBind(&shortenRequest) != nil {
+	if c.ShouldBindJSON(&shortenRequest) != nil {
 		c.String(400, "Bad Request")
 		return
 	}

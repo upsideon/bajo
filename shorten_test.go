@@ -61,7 +61,7 @@ var _ = Describe(shortenURL, func() {
 
 			It("returns a shortened URL", func() {
 				expected_response_content := map[string]string{
-					"shortened_url": "https://bajo/47DEQpj8",
+					"shortened_url": "https://bajo/oROh-p8o",
 				}
 				expected_json, _ := json.Marshal(expected_response_content)
 
