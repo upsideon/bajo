@@ -23,11 +23,15 @@ type ShortenRequest struct {
 	URL string `form:"url" json:"url" binding:"required"`
 }
 
-func shorten(c *gin.Context) {
+type ShortenController struct {
+	URLDatabase URLDatabase
+}
+
+func (c *ShortenController) Shorten(context *gin.Context) {
 	var shortenRequest ShortenRequest
 
-	if c.BindJSON(&shortenRequest) != nil {
-		c.String(http.StatusBadRequest, "Bad Request")
+	if context.BindJSON(&shortenRequest) != nil {
+		context.String(http.StatusBadRequest, "Bad Request")
 		return
 	}
 
@@ -38,7 +42,7 @@ func shorten(c *gin.Context) {
 	URLKey := base64Hash[:URLKeySize]
 	shortenedURL := fmt.Sprintf("%s/%s", URLPrefix, URLKey)
 
-	c.JSON(http.StatusOK, gin.H{
+	context.JSON(http.StatusOK, gin.H{
 		"shortened_url": shortenedURL,
 	})
 }

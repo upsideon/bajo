@@ -7,8 +7,11 @@ import (
 	"net/http/httptest"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	mocks "github.com/upsideon/bajo/mocks"
 )
 
 const shortenURL = "/shorten"
@@ -18,7 +21,9 @@ var _ = Describe(shortenURL, func() {
 	var writer *httptest.ResponseRecorder
 
 	BeforeEach(func() {
-		router = initializeRouter()
+		ctrl := gomock.NewController(GinkgoT())
+		urlDatabase := mocks.NewMockURLDatabase(ctrl)
+		router = initializeRouter(urlDatabase)
 		writer = httptest.NewRecorder()
 	})
 
