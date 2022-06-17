@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,14 +20,14 @@ const (
 
 // ShortenRequest represents a request to the URL shortening route.
 type ShortenRequest struct {
-	URL string `form:"url"`
+	URL string `form:"url" json:"url" binding:"required"`
 }
 
 func shorten(c *gin.Context) {
 	var shortenRequest ShortenRequest
 
-	if c.ShouldBindJSON(&shortenRequest) != nil {
-		c.String(400, "Bad Request")
+	if c.BindJSON(&shortenRequest) != nil {
+		c.String(http.StatusBadRequest, "Bad Request")
 		return
 	}
 
@@ -37,7 +38,7 @@ func shorten(c *gin.Context) {
 	URLKey := base64Hash[:URLKeySize]
 	shortenedURL := fmt.Sprintf("%s/%s", URLPrefix, URLKey)
 
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"shortened_url": shortenedURL,
 	})
 }
