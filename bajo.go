@@ -24,7 +24,12 @@ func initializeRouter(urlDatabase URLDatabase) *gin.Engine {
 		URLDatabase: urlDatabase,
 	}
 
+	redirectController := RedirectController{
+		URLDatabase: urlDatabase,
+	}
+
 	router := gin.Default()
 	router.POST("/shorten", shortenController.Shorten)
+	router.GET("/:key", redirectController.Redirect)
 	return router
 }
