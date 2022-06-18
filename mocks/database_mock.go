@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	leveldb "github.com/syndtr/goleveldb/leveldb"
 	opt "github.com/syndtr/goleveldb/leveldb/opt"
 )
 
@@ -104,4 +105,42 @@ func (m *MockURLDatabase) Put(key, value []byte, wo *opt.WriteOptions) error {
 func (mr *MockURLDatabaseMockRecorder) Put(key, value, wo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockURLDatabase)(nil).Put), key, value, wo)
+}
+
+// MockDatabaseManager is a mock of DatabaseManager interface.
+type MockDatabaseManager struct {
+	ctrl     *gomock.Controller
+	recorder *MockDatabaseManagerMockRecorder
+}
+
+// MockDatabaseManagerMockRecorder is the mock recorder for MockDatabaseManager.
+type MockDatabaseManagerMockRecorder struct {
+	mock *MockDatabaseManager
+}
+
+// NewMockDatabaseManager creates a new mock instance.
+func NewMockDatabaseManager(ctrl *gomock.Controller) *MockDatabaseManager {
+	mock := &MockDatabaseManager{ctrl: ctrl}
+	mock.recorder = &MockDatabaseManagerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDatabaseManager) EXPECT() *MockDatabaseManagerMockRecorder {
+	return m.recorder
+}
+
+// OpenFile mocks base method.
+func (m *MockDatabaseManager) OpenFile(path string, o *opt.Options) (*leveldb.DB, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OpenFile", path, o)
+	ret0, _ := ret[0].(*leveldb.DB)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OpenFile indicates an expected call of OpenFile.
+func (mr *MockDatabaseManagerMockRecorder) OpenFile(path, o interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OpenFile", reflect.TypeOf((*MockDatabaseManager)(nil).OpenFile), path, o)
 }

@@ -1,20 +1,13 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
-	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func main() {
-	urlDatabase, err := leveldb.OpenFile("url_database", nil)
-	if err != nil {
-		errorMessage := fmt.Sprintf("Error: Unable to access URL database: %s", err)
-		panic(errorMessage)
-	}
+	databaseManager := &LevelDBDatabaseManager{}
+	urlDatabase := GetURLDatabase(databaseManager)
 	defer urlDatabase.Close()
-
 	router := initializeRouter(urlDatabase)
 	router.Run(":8080")
 }
