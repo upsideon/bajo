@@ -7,8 +7,8 @@ Bajo is a URL shortening service written in Go.
 This project is still a work in progress, but the vision is to have the following fundamental features:
 
 - [x] Allow users to submit a URL of arbitrary length and receive a shortened URL.
-- [ ] Maintain a persistent, database backed mapping between submitted URLs and shortened URLs.
-- [ ] Redirect users to the submitted URL when the shortened URL is clicked.
+- [x] Maintain a persistent, database backend mapping between submitted URLs and shortened URLs.
+- [x] Redirect users to the submitted URL when the shortened URL is clicked.
 
 Once the fundamentals are in place, some nice-to-have features are listed below:
 
