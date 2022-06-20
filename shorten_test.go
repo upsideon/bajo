@@ -47,53 +47,140 @@ var _ = Describe(shortenURL, func() {
 	})
 
 	When("a URL is provided", func() {
-		const urlKey = "oROh-p8o"
+		const (
+			computedUrlKey = "oROh-p8o"
+			customUrlKey   = "custom"
+			exampleUrl     = "https://en.wikipedia.org/wiki/URL_shortening"
+			invalidUrlKey  = "thiskeyistoolongfortherouteisitnotmyfriend?"
+		)
 
-		var url string
+		var requestContent map[string]string
+
+		BeforeEach(func() {
+			requestContent = map[string]string{}
+		})
 
 		JustBeforeEach(func() {
-			request_content := map[string]string{
-				"url": url,
-			}
-			request_body, _ := json.Marshal(request_content)
-
-			request, _ := http.NewRequest("POST", shortenURL, bytes.NewReader(request_body))
+			requestBody, _ := json.Marshal(requestContent)
+			request, _ := http.NewRequest("POST", shortenURL, bytes.NewReader(requestBody))
 			router.ServeHTTP(writer, request)
 		})
 
 		Context("and the URL is valid", func() {
 			BeforeEach(func() {
-				url = "https://en.wikipedia.org/wiki/URL_shortening"
+				requestContent["url"] = exampleUrl
 			})
 
-			Context("and there is an error checking for an existing URL key", func() {
-				BeforeEach(func() {
-					mockURLDatabase.EXPECT().Get(
-						[]byte(urlKey), nil,
-					).Return(nil, errors.New("failed to query database"))
-				})
-
-				It("returns a 500", func() {
-					Expect(writer.Code).To(Equal(http.StatusInternalServerError))
-				})
-
-				It("return error message", func() {
-					Expect(writer.Body.String()).To(Equal("Internal Server Error"))
-				})
-			})
-
-			Context("and the URL key is not present in database", func() {
-				BeforeEach(func() {
-					mockURLDatabase.EXPECT().Get(
-						[]byte(urlKey), nil,
-					).Return(nil, dberror.ErrNotFound)
-				})
-
-				Context("and inserting the URL key fails", func() {
+			Context("and a custom URL key is specified", func() {
+				Context("and the custom URL key is invalid", func() {
 					BeforeEach(func() {
-						mockURLDatabase.EXPECT().Put(
-							[]byte(urlKey), []byte(url), nil,
-						).Return(errors.New("failed to insert URL key"))
+						requestContent["key"] = invalidUrlKey
+					})
+
+					It("returns a 400", func() {
+						Expect(writer.Code).To(Equal(http.StatusBadRequest))
+					})
+
+					It("return error message", func() {
+						Expect(writer.Body.String()).To(Equal("Bad Request"))
+					})
+				})
+
+				Context("and the custom URL key is valid", func() {
+					BeforeEach(func() {
+						requestContent["key"] = customUrlKey
+					})
+
+					Context("and there is an error checking for an existing URL key", func() {
+						BeforeEach(func() {
+							mockURLDatabase.EXPECT().Get(
+								[]byte(customUrlKey), nil,
+							).Return(nil, errors.New("failed to query database"))
+						})
+
+						It("returns a 500", func() {
+							Expect(writer.Code).To(Equal(http.StatusInternalServerError))
+						})
+
+						It("return error message", func() {
+							Expect(writer.Body.String()).To(Equal("Internal Server Error"))
+						})
+					})
+
+					Context("and the URL key is not present in database", func() {
+						BeforeEach(func() {
+							mockURLDatabase.EXPECT().Get(
+								[]byte(customUrlKey), nil,
+							).Return(nil, dberror.ErrNotFound)
+						})
+
+						Context("and inserting the URL key fails", func() {
+							BeforeEach(func() {
+								mockURLDatabase.EXPECT().Put(
+									[]byte(customUrlKey), []byte(exampleUrl), nil,
+								).Return(errors.New("failed to insert URL key"))
+							})
+
+							It("returns a 500", func() {
+								Expect(writer.Code).To(Equal(http.StatusInternalServerError))
+							})
+
+							It("return error message", func() {
+								Expect(writer.Body.String()).To(Equal("Internal Server Error"))
+							})
+						})
+
+						Context("and inserting the URL key succeeds", func() {
+							BeforeEach(func() {
+								mockURLDatabase.EXPECT().Put(
+									[]byte(customUrlKey), []byte(exampleUrl), nil,
+								).Return(nil)
+							})
+
+							It("returns a 200", func() {
+								Expect(writer.Code).To(Equal(http.StatusOK))
+							})
+
+							It("returns a shortened URL", func() {
+								expectedResponseContent := map[string]string{
+									"shortened_url": fmt.Sprintf("https://bajo/%s", customUrlKey),
+								}
+								expectedJson, _ := json.Marshal(expectedResponseContent)
+
+								Expect(writer.Body.String()).To(Equal(string(expectedJson)))
+							})
+						})
+					})
+
+					Context("and the URL key is present in database", func() {
+						BeforeEach(func() {
+							mockURLDatabase.EXPECT().Get(
+								[]byte(customUrlKey), nil,
+							).Return([]byte(exampleUrl), nil)
+						})
+
+						It("returns a 200", func() {
+							Expect(writer.Code).To(Equal(http.StatusOK))
+						})
+
+						It("returns a shortened URL", func() {
+							expectedResponseContent := map[string]string{
+								"shortened_url": fmt.Sprintf("https://bajo/%s", customUrlKey),
+							}
+							expectedJson, _ := json.Marshal(expectedResponseContent)
+
+							Expect(writer.Body.String()).To(Equal(string(expectedJson)))
+						})
+					})
+				})
+			})
+
+			Context("and a custom URL key is not specified", func() {
+				Context("and there is an error checking for an existing URL key", func() {
+					BeforeEach(func() {
+						mockURLDatabase.EXPECT().Get(
+							[]byte(computedUrlKey), nil,
+						).Return(nil, errors.New("failed to query database"))
 					})
 
 					It("returns a 500", func() {
@@ -105,11 +192,56 @@ var _ = Describe(shortenURL, func() {
 					})
 				})
 
-				Context("and inserting the URL key succeeds", func() {
+				Context("and the URL key is not present in database", func() {
 					BeforeEach(func() {
-						mockURLDatabase.EXPECT().Put(
-							[]byte(urlKey), []byte(url), nil,
-						).Return(nil)
+						mockURLDatabase.EXPECT().Get(
+							[]byte(computedUrlKey), nil,
+						).Return(nil, dberror.ErrNotFound)
+					})
+
+					Context("and inserting the URL key fails", func() {
+						BeforeEach(func() {
+							mockURLDatabase.EXPECT().Put(
+								[]byte(computedUrlKey), []byte(exampleUrl), nil,
+							).Return(errors.New("failed to insert URL key"))
+						})
+
+						It("returns a 500", func() {
+							Expect(writer.Code).To(Equal(http.StatusInternalServerError))
+						})
+
+						It("return error message", func() {
+							Expect(writer.Body.String()).To(Equal("Internal Server Error"))
+						})
+					})
+
+					Context("and inserting the URL key succeeds", func() {
+						BeforeEach(func() {
+							mockURLDatabase.EXPECT().Put(
+								[]byte(computedUrlKey), []byte(exampleUrl), nil,
+							).Return(nil)
+						})
+
+						It("returns a 200", func() {
+							Expect(writer.Code).To(Equal(http.StatusOK))
+						})
+
+						It("returns a shortened URL", func() {
+							expectedResponseContent := map[string]string{
+								"shortened_url": fmt.Sprintf("https://bajo/%s", computedUrlKey),
+							}
+							expectedJson, _ := json.Marshal(expectedResponseContent)
+
+							Expect(writer.Body.String()).To(Equal(string(expectedJson)))
+						})
+					})
+				})
+
+				Context("and the URL key is present in database", func() {
+					BeforeEach(func() {
+						mockURLDatabase.EXPECT().Get(
+							[]byte(computedUrlKey), nil,
+						).Return([]byte(exampleUrl), nil)
 					})
 
 					It("returns a 200", func() {
@@ -117,32 +249,13 @@ var _ = Describe(shortenURL, func() {
 					})
 
 					It("returns a shortened URL", func() {
-						expected_response_content := map[string]string{
-							"shortened_url": fmt.Sprintf("https://bajo/%s", urlKey),
+						expectedResponseContent := map[string]string{
+							"shortened_url": fmt.Sprintf("https://bajo/%s", computedUrlKey),
 						}
-						expected_json, _ := json.Marshal(expected_response_content)
+						expectedJson, _ := json.Marshal(expectedResponseContent)
 
-						Expect(writer.Body.String()).To(Equal(string(expected_json)))
+						Expect(writer.Body.String()).To(Equal(string(expectedJson)))
 					})
-				})
-			})
-
-			Context("and the URL key is present in database", func() {
-				BeforeEach(func() {
-					mockURLDatabase.EXPECT().Get([]byte(urlKey), nil).Return([]byte(url), nil)
-				})
-
-				It("returns a 200", func() {
-					Expect(writer.Code).To(Equal(http.StatusOK))
-				})
-
-				It("returns a shortened URL", func() {
-					expected_response_content := map[string]string{
-						"shortened_url": fmt.Sprintf("https://bajo/%s", urlKey),
-					}
-					expected_json, _ := json.Marshal(expected_response_content)
-
-					Expect(writer.Body.String()).To(Equal(string(expected_json)))
 				})
 			})
 		})
