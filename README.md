@@ -12,6 +12,6 @@ This project is still a work in progress, but the vision is to have the followin
 
 Once the fundamentals are in place, some nice-to-have features are listed below:
 
-- [ ] Give users the ability to submit a custom shortened URL key.
+- [x] Give users the ability to submit a custom shortened URL key.
 - [ ] Provide click statistics for shortened URLs.
 
