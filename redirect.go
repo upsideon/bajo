@@ -7,10 +7,12 @@ import (
 	dberror "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
+// RedirectController manages URL redirection.
 type RedirectController struct {
 	URLDatabase URLDatabase
 }
 
+// Redirect implements the logic for URL redirection.
 func (c *RedirectController) Redirect(context *gin.Context) {
 	URLKey := context.Param("key")
 
