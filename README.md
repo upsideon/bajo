@@ -15,3 +15,11 @@ With the fundamentals in place, some nice-to-have features are listed below:
 - [x] Give users the ability to submit a custom shortened URL key.
 - [ ] Provide click statistics for shortened URLs.
 
+## Tests
+
+Unit tests can be run within the container by executing the following commands:
+
+```
+docker-compose build
+docker-compose run bajo ginkgo
+```
