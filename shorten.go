@@ -25,7 +25,7 @@ const (
 // ShortenRequest represents a request to the URL shortening route.
 type ShortenRequest struct {
 	// Key contains an optional custom key with which to index the provided URL.
-	Key string `from:"key" json:"key,omitempty" binding:"-"`
+	Key string `form:"key" json:"key,omitempty" binding:"-"`
 	// URL contains the URL to be shortened.
 	URL string `form:"url" json:"url" binding:"required"`
 }
